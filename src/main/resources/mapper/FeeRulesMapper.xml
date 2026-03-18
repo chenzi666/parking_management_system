@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.FeeRulesMapper">
+
+    <resultMap id="FeeRuleResultMap" type="org.example.parking_management_system.entity.FeeRule">
+        <id column="id" property="id"/>
+        <result column="parking_lot_id" property="parkingLotId"/>
+        <result column="name" property="name"/>
+        <result column="rule_type" property="ruleType"/>
+        <result column="first_hour_fee" property="firstHourFee"/>
+        <result column="additional_hour_fee" property="additionalHourFee"/>
+        <result column="daily_max_fee" property="dailyMaxFee"/>
+        <result column="monthly_fee" property="monthlyFee"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="is_default" property="isDefault"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    <select id="findById" resultMap="FeeRuleResultMap">
+        SELECT id,name,rule_type,first_hour_fee,additional_hour_fee,daily_max_fee
+        FROM fee_rule WHERE parking_lot_id = #{id} AND status = 1
+    </select>
+</mapper>

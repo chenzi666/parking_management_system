@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.admin.ManageUsersMapper">
+
+    <resultMap id="UserResultMap" type="org.example.parking_management_system.entity.User">
+        <id column="id" property="id" />
+        <result column="phone" property="phone" />
+        <result column="password" property="password" />
+        <result column="nickname" property="nickname" />
+        <result column="avatar" property="avatar" />
+        <result column="balance" property="balance" />
+        <result column="membership_level" property="membershipLevel" />
+        <result column="points" property="points" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <sql id="User_Column_List">
+        id, phone, password, nickname, avatar, balance, membership_level, points, status, created_at, updated_at
+    </sql>
+
+    <!-- 根据ID查询用户 -->
+    <select id="findById" parameterType="long" resultMap="UserResultMap">
+        SELECT <include refid="User_Column_List" />
+        FROM user
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据ID列表批量查询用户 -->
+    <select id="findByIds" parameterType="java.util.List" resultMap="UserResultMap">
+        SELECT <include refid="User_Column_List" />
+        FROM user
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 查询所有用户 -->
+    <select id="findAll" resultMap="UserResultMap">
+        SELECT <include refid="User_Column_List" />
+        FROM user
+        <where>
+            <if test="phone != null and phone != ''">
+                AND phone = #{phone}
+            </if>
+            <if test="nickname != null and nickname != ''">
+                AND nickname LIKE CONCAT('%', #{nickname}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY id LIMIT #{offset},#{pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM user
+    </select>
+
+    <!-- 插入新用户 -->
+    <insert id="insert" parameterType="org.example.parking_management_system.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (phone, password, nickname, avatar, balance, membership_level, points, status, created_at, updated_at)
+        VALUES (#{phone}, #{password}, #{nickname}, #{avatar}, #{balance}, #{membershipLevel}, #{points}, #{status}, NOW(), NOW())
+    </insert>
+
+    <!-- 更新用户信息 -->
+    <update id="update" parameterType="org.example.parking_management_system.entity.User">
+        UPDATE user
+        <set>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="balance != null">balance = #{balance},</if>
+            <if test="membershipLevel != null">membership_level = #{membershipLevel},</if>
+            <if test="points != null">points = #{points},</if>
+            <if test="status != null">status = #{status},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除用户 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM user WHERE id = #{id}
+    </delete>
+
+</mapper>

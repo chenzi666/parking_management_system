@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.admin.AdminParkingLotMapper">
+    
+    <resultMap id="ParkingLotResultMap" type="org.example.parking_management_system.entity.ParkingLot">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="address" property="address"/>
+        <result column="total_spaces" property="totalSpaces"/>
+        <result column="available_spaces" property="availableSpaces"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="latitude" property="latitude"/>
+        <result column="longitude" property="longitude"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, name, address, total_spaces, available_spaces, contact_phone, 
+        latitude, longitude, description, status, created_at, updated_at
+    </sql>
+    
+    <!-- 查询所有停车场 -->
+    <select id="findByAll" resultMap="ParkingLotResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM parking_lot
+        <where>
+            <if test="queryDTO.name != null and queryDTO.name != ''">
+                AND name LIKE CONCAT('%', #{queryDTO.name}, '%')
+            </if>
+            <if test="queryDTO.status != null">
+                AND status = #{queryDTO.status}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{queryDTO.pageSize}
+    </select>
+    
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM parking_lot
+        <where>
+            <if test="queryDTO.name != null and queryDTO.name != ''">
+                AND name LIKE CONCAT('%', #{queryDTO.name}, '%')
+            </if>
+            <if test="queryDTO.status != null">
+                AND status = #{queryDTO.status}
+            </if>
+        </where>
+    </select>
+    <!-- 根据ID查询停车场 -->
+    <select id="findById" parameterType="long" resultMap="ParkingLotResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM parking_lot
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据名称模糊查询 -->
+    <select id="findByName" parameterType="string" resultMap="ParkingLotResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM parking_lot
+        WHERE name LIKE CONCAT('%', #{name}, '%')
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据状态查询 -->
+    <select id="findByStatus" parameterType="int" resultMap="ParkingLotResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM parking_lot
+        WHERE status = #{status}
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 新增停车场 -->
+    <insert id="insert" parameterType="org.example.parking_management_system.entity.ParkingLot"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO parking_lot (
+            name, address, total_spaces, available_spaces, contact_phone,
+            latitude, longitude, description, status, created_at, updated_at
+        ) VALUES (
+            #{name}, #{address}, #{totalSpaces}, #{availableSpaces}, #{contactPhone},
+            #{latitude}, #{longitude}, #{description}, #{status}, NOW(), NOW()
+        )
+    </insert>
+    
+    <!-- 更新停车场信息 -->
+    <update id="updateById" parameterType="org.example.parking_management_system.entity.ParkingLot" useGeneratedKeys="false">
+        UPDATE parking_lot
+        <set>
+            <if test="updateParkingLotDTO.name != null and updateParkingLotDTO.name != ''">
+                name = #{updateParkingLotDTO.name},
+            </if>
+            <if test="updateParkingLotDTO.address != null and updateParkingLotDTO.address != ''">
+                address = #{updateParkingLotDTO.address},
+            </if>
+            <if test="updateParkingLotDTO.totalSpaces != null">
+                total_spaces = #{updateParkingLotDTO.totalSpaces},
+            </if>
+            <if test="updateParkingLotDTO.availableSpaces != null">
+                available_spaces = #{updateParkingLotDTO.availableSpaces},
+            </if>
+            <if test="updateParkingLotDTO.contactPhone != null and updateParkingLotDTO.contactPhone != ''">
+                contact_phone = #{updateParkingLotDTO.contactPhone},
+            </if>
+            <if test="updateParkingLotDTO.latitude != null">
+                latitude = #{updateParkingLotDTO.latitude},
+            </if>
+            <if test="updateParkingLotDTO.longitude != null">
+                longitude = #{updateParkingLotDTO.longitude},
+            </if>
+            <if test="updateParkingLotDTO.description != null">
+                description = #{updateParkingLotDTO.description},
+            </if>
+            <if test="updateParkingLotDTO.status != null">
+                status = #{updateParkingLotDTO.status},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除停车场 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM parking_lot WHERE id = #{id}
+    </delete>
+    
+    <!-- 更新可用车位数 -->
+    <update id="updateAvailableSpaces">
+        UPDATE parking_lot
+        SET available_spaces = #{availableSpaces},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    
+    <!-- 根据状态统计 -->
+    <select id="countByStatus" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM parking_lot WHERE status = #{status}
+    </select>
+    <select id="findByIdAll" parameterType="java.util.List" resultMap="ParkingLotResultMap">
+        SELECT name,id FROM parking_lot WHERE id IN
+            <foreach collection="list" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+    </select>
+</mapper>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.admin.AdminFeeRuleMapper">
+
+    <resultMap id="FeeRuleResultMap" type="org.example.parking_management_system.entity.FeeRule">
+        <id column="id" property="id"/>
+        <result column="parking_lot_id" property="parkingLotId"/>
+        <result column="name" property="name"/>
+        <result column="rule_type" property="ruleType"/>
+        <result column="first_hour_fee" property="firstHourFee"/>
+        <result column="additional_hour_fee" property="additionalHourFee"/>
+        <result column="daily_max_fee" property="dailyMaxFee"/>
+        <result column="monthly_fee" property="monthlyFee"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="is_default" property="isDefault"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 插入收费规则 -->
+    <insert id="insert" parameterType="org.example.parking_management_system.entity.FeeRule" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO fee_rule (parking_lot_id, name, rule_type, first_hour_fee, additional_hour_fee, 
+                              daily_max_fee, start_time, end_time, is_default, status, created_at, updated_at)
+        VALUES (#{parkingLotId}, #{name}, #{ruleType}, #{firstHourFee}, #{additionalHourFee},
+                #{dailyMaxFee}, #{startTime}, #{endTime}, #{isDefault}, #{status}, NOW(), NOW())
+    </insert>
+
+    <!-- 根据ID查询收费规则 -->
+    <select id="findById" parameterType="long" resultMap="FeeRuleResultMap">
+        SELECT id, parking_lot_id, name, rule_type, first_hour_fee, additional_hour_fee, 
+               daily_max_fee, monthly_fee, start_time, end_time, is_default, status, created_at, updated_at
+        FROM fee_rule
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有收费规则 -->
+    <select id="findByAll" resultMap="FeeRuleResultMap">
+        SELECT id, parking_lot_id, name, rule_type, first_hour_fee, additional_hour_fee, 
+               daily_max_fee, monthly_fee, start_time, end_time, is_default, status, created_at, updated_at
+        FROM fee_rule
+        <where>
+            <if test="parkingLotId != null">
+                AND parking_lot_id = #{parkingLotId}
+            </if>
+            <if test="ruleType != null and ruleType != ''">
+               AND rule_type = #{ruleType}
+            </if>
+            <if test="status != null">
+               AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据停车场ID查询收费规则 -->
+    <select id="findByParkingLotId" parameterType="long" resultMap="FeeRuleResultMap">
+        SELECT id, parking_lot_id, name, rule_type, first_hour_fee, additional_hour_fee, 
+               daily_max_fee, monthly_fee, start_time, end_time, is_default, status, created_at, updated_at
+        FROM fee_rule
+        WHERE parking_lot_id = #{parkingLotId}
+    </select>
+
+    <!-- 更新收费规则 -->
+    <update id="updateById" parameterType="org.example.parking_management_system.entity.FeeRule">
+        UPDATE fee_rule
+        <set>
+            <if test="updateFeeRuleDTO.firstHourFee != null">
+                first_hour_fee = #{updateFeeRuleDTO.firstHourFee},
+            </if>
+            <if test="updateFeeRuleDTO.additionalHourFee != null">
+                additional_hour_fee = #{updateFeeRuleDTO.additionalHourFee},
+            </if>
+            <if test="updateFeeRuleDTO.dailyMaxFee != null">
+                daily_max_fee = #{updateFeeRuleDTO.dailyMaxFee},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除收费规则 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM fee_rule WHERE id = #{id}
+    </delete>
+    <update id="defaultById" parameterType="java.lang.Long">
+        UPDATE fee_rule SET is_default = 1 WHERE id = #{id}
+    </update>
+</mapper>

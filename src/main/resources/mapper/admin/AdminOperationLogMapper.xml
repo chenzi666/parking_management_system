@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.admin.AdminOperationLogMapper">
+    
+    <resultMap id="OperationLogResultMap" type="org.example.parking_management_system.entity.OperationLog">
+        <id column="id" property="id"/>
+        <result column="admin_id" property="adminId"/>
+        <result column="operation_type" property="operationType"/>
+        <result column="operation_content" property="operationContent"/>
+        <result column="ip_address" property="ipAddress"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    
+    <!-- 查询操作日志列表 -->
+    <select id="findAll" resultMap="OperationLogResultMap">
+        SELECT * FROM operation_log
+        <where>
+            <if test="queryDTO.adminId != null">
+                AND admin_id = #{queryDTO.adminId}
+            </if>
+            <if test="queryDTO.operationType != null and queryDTO.operationType != ''">
+                AND operation_type = #{queryDTO.operationType}
+            </if>
+            <if test="queryDTO.startDate != null and queryDTO.startDate != ''">
+                AND created_at &gt;= #{queryDTO.startDate}
+            </if>
+            <if test="queryDTO.endDate != null and queryDTO.endDate != ''">
+                AND created_at &lt;= #{queryDTO.endDate}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{queryDTO.pageSize}
+    </select>
+    
+    <!-- 统计操作日志总数 -->
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM operation_log
+        <where>
+            <if test="queryDTO.adminId != null">
+                AND admin_id = #{queryDTO.adminId}
+            </if>
+            <if test="queryDTO.operationType != null and queryDTO.operationType != ''">
+                AND operation_type = #{queryDTO.operationType}
+            </if>
+            <if test="queryDTO.startDate != null and queryDTO.startDate != ''">
+                AND created_at &gt;= #{queryDTO.startDate}
+            </if>
+            <if test="queryDTO.endDate != null and queryDTO.endDate != ''">
+                AND created_at &lt;= #{queryDTO.endDate}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 根据管理员ID删除操作日志 -->
+    <delete id="deleteByAdminId" parameterType="long">
+        DELETE FROM operation_log WHERE admin_id = #{adminId}
+    </delete>
+    
+</mapper>

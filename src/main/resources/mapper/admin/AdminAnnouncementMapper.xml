@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.admin.AdminAnnouncementMapper">
+    
+    <resultMap id="AnnouncementResultMap" type="org.example.parking_management_system.entity.Announcement">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="admin_id" property="adminId"/>
+        <result column="is_top" property="isTop"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <!-- 查询公告列表 -->
+    <select id="findAll" resultMap="AnnouncementResultMap">
+        SELECT * FROM announcement
+        <where>
+            <if test="queryDTO.title != null and queryDTO.title != ''">
+                AND title LIKE CONCAT('%', #{queryDTO.title}, '%')
+            </if>
+            <if test="queryDTO.status != null">
+                AND status = #{queryDTO.status}
+            </if>
+        </where>
+        ORDER BY is_top DESC, created_at DESC
+        LIMIT #{offset}, #{queryDTO.pageSize}
+    </select>
+    
+    <!-- 统计公告总数 -->
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM announcement
+        <where>
+            <if test="queryDTO.title != null and queryDTO.title != ''">
+                AND title LIKE CONCAT('%', #{queryDTO.title}, '%')
+            </if>
+            <if test="queryDTO.status != null">
+                AND status = #{queryDTO.status}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 根据ID查询公告 -->
+    <select id="findById" resultMap="AnnouncementResultMap">
+        SELECT * FROM announcement WHERE id = #{id}
+    </select>
+    
+    <!-- 新增公告 -->
+    <insert id="insert" parameterType="org.example.parking_management_system.entity.Announcement" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO announcement (title, content, admin_id, is_top, status, created_at, updated_at)
+        VALUES (#{title}, #{content}, #{adminId}, #{isTop}, #{status}, NOW(), NOW())
+    </insert>
+    
+    <!-- 更新公告 -->
+    <update id="updateById">
+        UPDATE announcement
+        <set>
+            <if test="dto.title != null and dto.title != ''">
+                title = #{dto.title},
+            </if>
+            <if test="dto.content != null and dto.content != ''">
+                content = #{dto.content},
+            </if>
+            <if test="dto.isTop != null">
+                is_top = #{dto.isTop},
+            </if>
+            <if test="dto.status != null">
+                status = #{dto.status},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除公告 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM announcement WHERE id = #{id}
+    </delete>
+    
+</mapper>

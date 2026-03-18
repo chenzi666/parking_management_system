@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.admin.AdminUserMapper">
+
+    <resultMap id="AdminUserResultMap" type="org.example.parking_management_system.entity.AdminUser">
+        <id column="id" property="id" />
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+        <result column="role" property="role" />
+        <result column="real_name" property="realName" />
+        <result column="phone" property="phone" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <sql id="AdminUser_Column_List">
+        id, username, password, role, real_name, phone, status, created_at, updated_at
+    </sql>
+
+    <!-- 根据ID查询管理员用户 -->
+    <select id="findById" parameterType="long" resultMap="AdminUserResultMap">
+        SELECT <include refid="AdminUser_Column_List" />
+        FROM admin_user
+        WHERE id = #{id}
+    </select>
+    <!-- 根据用户名查询管理员用户 -->
+    <select id="findByUsername" parameterType="String" resultMap="AdminUserResultMap">
+        SELECT <include refid="AdminUser_Column_List" />
+        FROM admin_user
+        WHERE username = #{username}
+    </select>
+    <!-- 根据ID列表批量查询管理员用户 -->
+    <select id="findByIds" parameterType="java.util.List" resultMap="AdminUserResultMap">
+        SELECT <include refid="AdminUser_Column_List" />
+        FROM admin_user
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 查询所有管理员用户 -->
+    <select id="findAll" resultMap="AdminUserResultMap">
+        SELECT <include refid="AdminUser_Column_List" />
+        FROM admin_user
+        <where>
+        <if test="username != null and username != ''">
+           AND username = #{username}
+        </if>
+        <if test="role != null and role != ''">
+            AND role = #{role}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </where>
+        ORDER BY id LIMIT #{offset},#{pageSize}
+    </select>
+    <select id="count" parameterType="java.lang.Integer">
+        SELECT COUNT(*) FROM admin_user
+    </select>
+    <insert id="insert" parameterType="org.example.parking_management_system.entity.AdminUser" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO admin_user (username,password,role,real_name,phone,status,created_at,updated_at)
+        VALUES (#{username},#{password},#{role},#{realName},#{phone},#{status},NOW(),NOW())
+    </insert>
+    <update id="updateById" parameterType="map">
+        UPDATE admin_user
+        <set>
+            <if test="updateAdminUserDTO.realName != null and updateAdminUserDTO.realName != ''">
+                real_name = #{updateAdminUserDTO.realName},
+            </if>
+            <if test="updateAdminUserDTO.phone != null and updateAdminUserDTO.phone != ''">
+                phone = #{updateAdminUserDTO.phone},
+            </if>
+            <if test="updateAdminUserDTO.status != null">
+                status = #{updateAdminUserDTO.status},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+    <update id="updatePassword">
+        UPDATE admin_user
+        SET
+            password = #{password},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM admin_user WHERE id = #{id}
+    </delete>
+</mapper>

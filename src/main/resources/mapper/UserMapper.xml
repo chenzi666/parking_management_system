@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="org.example.parking_management_system.entity.User">
+        <id column="id" property="id" />
+        <result column="phone" property="phone" />
+        <result column="password" property="password" />
+        <result column="nickname" property="nickname" />
+        <result column="avatar" property="avatar" />
+        <result column="balance" property="balance" />
+        <result column="membership_level" property="membershipLevel" />
+        <result column="points" property="points" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+    <select id="findByPhone" resultMap="UserResultMap">
+        SELECT id,phone,nickname,avatar,balance,password,membership_level FROM user WHERE phone = #{phone}
+    </select>
+    <insert id="register" parameterType="org.example.parking_management_system.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (phone,password,nickname,avatar,balance,membership_level,points,status,created_at,updated_at)
+        VALUES (#{phone},#{password},null,null,0,0,0,1,NOW(),NOW())
+    </insert>
+    <select id="findById" resultMap="UserResultMap">
+        SELECT id,phone,nickname,avatar,balance,membership_level,password FROM user WHERE id = #{id}
+    </select>
+    <update id="updatePassword" >
+        UPDATE user
+        SET password = #{newPassword}
+        WHERE id = #{id}
+    </update>
+</mapper>

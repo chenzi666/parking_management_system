@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.admin.AdminPaymentMapper">
+
+    <resultMap id="PaymentResultMap" type="org.example.parking_management_system.entity.Payment">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="parkingRecordId" column="parking_record_id"/>
+        <result property="monthlyRentalId" column="monthly_rental_id"/>
+        <result property="amount" column="amount"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="transactionId" column="transaction_id"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    <select id="findByDate" resultMap="PaymentResultMap">
+        SELECT * FROM payment 
+        WHERE created_at >= #{startDate} 
+        AND created_at &lt;= #{endDate}
+        AND status = 1
+    </select>
+    <select id="findByDateCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM payment 
+        WHERE created_at >= #{startDate} 
+        AND created_at &lt;= #{endDate}
+        AND status = 1
+    </select>
+
+    <!-- 按日统计财务数据 -->
+    <select id="findDailyStatistics" resultType="map">
+        SELECT
+            DATE(p.created_at) as date,
+            SUM(p.amount) as amount,
+            COUNT(*) as count
+        FROM payment p
+        <if test="parkingLotId != null">
+            INNER JOIN parking_record pr ON p.parking_record_id = pr.id
+        </if>
+        WHERE p.created_at >= #{startDate}
+        AND p.created_at &lt;= #{endDate}
+        AND p.status = 1
+        <if test="parkingLotId != null">
+            AND pr.parking_lot_id = #{parkingLotId}
+        </if>
+        GROUP BY DATE(p.created_at)
+        ORDER BY date
+    </select>
+
+    <!-- 按周统计财务数据 -->
+    <select id="findWeeklyStatistics" resultType="map">
+        SELECT
+            DATE(DATE_SUB(p.created_at, INTERVAL WEEKDAY(p.created_at) DAY)) as date,
+            SUM(p.amount) as amount,
+            COUNT(*) as count
+        FROM payment p
+        <if test="parkingLotId != null">
+            INNER JOIN parking_record pr ON p.parking_record_id = pr.id
+        </if>
+        WHERE p.created_at >= #{startDate}
+        AND p.created_at &lt;= #{endDate}
+        AND p.status = 1
+        <if test="parkingLotId != null">
+            AND pr.parking_lot_id = #{parkingLotId}
+        </if>
+        GROUP BY DATE(DATE_SUB(p.created_at, INTERVAL WEEKDAY(p.created_at) DAY))
+        ORDER BY date
+    </select>
+
+    <!-- 按月统计财务数据 -->
+    <select id="findMonthlyStatistics" resultType="map">
+        SELECT
+            DATE_FORMAT(p.created_at, '%Y-%m-01') as date,
+            SUM(p.amount) as amount,
+            COUNT(*) as count
+        FROM payment p
+        <if test="parkingLotId != null">
+            INNER JOIN parking_record pr ON p.parking_record_id = pr.id
+        </if>
+        WHERE p.created_at >= #{startDate}
+        AND p.created_at &lt;= #{endDate}
+        AND p.status = 1
+        <if test="parkingLotId != null">
+            AND pr.parking_lot_id = #{parkingLotId}
+        </if>
+        GROUP BY DATE_FORMAT(p.created_at, '%Y-%m')
+        ORDER BY date
+    </select>
+
+    <!-- 查询总金额 -->
+    <select id="findTotalAmount" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(p.amount), 0)
+        FROM payment p
+        <if test="parkingLotId != null">
+            INNER JOIN parking_record pr ON p.parking_record_id = pr.id
+        </if>
+        WHERE p.created_at >= #{startDate}
+        AND p.created_at &lt;= #{endDate}
+        AND p.status = 1
+        <if test="parkingLotId != null">
+            AND pr.parking_lot_id = #{parkingLotId}
+        </if>
+    </select>
+
+    <!-- 查询总记录数 -->
+    <select id="findTotalCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM payment p
+        <if test="parkingLotId != null">
+            INNER JOIN parking_record pr ON p.parking_record_id = pr.id
+        </if>
+        WHERE p.created_at >= #{startDate}
+        AND p.created_at &lt;= #{endDate}
+        AND p.status = 1
+        <if test="parkingLotId != null">
+            AND pr.parking_lot_id = #{parkingLotId}
+        </if>
+    </select>
+    <!-- 分页查询支付记录(带详细信息) -->
+    <select id="findPaymentRecordsWithDetails" resultType="map">
+        SELECT
+            p.id,
+            pl.name as parkingLotName,
+            v.plate_number as plateNumber,
+            p.amount,
+            p.payment_method as paymentMethod,
+            p.transaction_id as transactionId,
+            p.created_at as createdAt
+        FROM payment p
+        INNER JOIN parking_record pr ON p.parking_record_id = pr.id
+        INNER JOIN parking_lot pl ON pr.parking_lot_id = pl.id
+        INNER JOIN vehicle v ON pr.vehicle_id = v.id
+        WHERE p.status = 1
+        <if test="parkingLotId != null">
+            AND pr.parking_lot_id = #{parkingLotId}
+        </if>
+        <if test="plateNumber != null and plateNumber != ''">
+            AND v.plate_number LIKE CONCAT('%', #{plateNumber}, '%')
+        </if>
+        <if test="paymentMethod != null and paymentMethod != ''">
+            AND p.payment_method = #{paymentMethod}
+        </if>
+        <if test="startDate != null">
+            AND p.created_at >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND p.created_at &lt;= #{endDate}
+        </if>
+        ORDER BY p.created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 统计符合条件的支付记录总数 -->
+    <select id="countPaymentRecords" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM payment p
+        INNER JOIN parking_record pr ON p.parking_record_id = pr.id
+        INNER JOIN vehicle v ON pr.vehicle_id = v.id
+        WHERE p.status = 1
+        <if test="parkingLotId != null">
+            AND pr.parking_lot_id = #{parkingLotId}
+        </if>
+        <if test="plateNumber != null and plateNumber != ''">
+            AND v.plate_number LIKE CONCAT('%', #{plateNumber}, '%')
+        </if>
+        <if test="paymentMethod != null and paymentMethod != ''">
+            AND p.payment_method = #{paymentMethod}
+        </if>
+        <if test="startDate != null">
+            AND p.created_at >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND p.created_at &lt;= #{endDate}
+        </if>
+    </select>
+
+    <!-- 查询按小时统计的高峰时段数据 -->
+    <select id="findPeakHours" resultType="map">
+        SELECT
+            HOUR(p.created_at) as hour,
+            COUNT(*) as count
+        FROM payment p
+        <if test="parkingLotId != null">
+            INNER JOIN parking_record pr ON p.parking_record_id = pr.id
+        </if>
+        WHERE p.created_at >= #{startDate}
+        AND p.created_at &lt;= #{endDate}
+        AND p.status = 1
+        <if test="parkingLotId != null">
+            AND pr.parking_lot_id = #{parkingLotId}
+        </if>
+        GROUP BY HOUR(p.created_at)
+        ORDER BY count DESC
+    </select>
+
+    <!-- 查询支付方式分布统计 -->
+    <select id="findPaymentMethodDistribution" resultType="map">
+        SELECT
+            p.payment_method as method,
+            COUNT(*) as count
+        FROM payment p
+        <if test="parkingLotId != null">
+            INNER JOIN parking_record pr ON p.parking_record_id = pr.id
+        </if>
+        WHERE p.created_at >= #{startDate}
+        AND p.created_at &lt;= #{endDate}
+        AND p.status = 1
+        <if test="parkingLotId != null">
+            AND pr.parking_lot_id = #{parkingLotId}
+        </if>
+        GROUP BY p.payment_method
+        ORDER BY count DESC
+    </select>
+
+    <!-- 统计不同车辆数(去重) -->
+    <select id="countDistinctVehicles" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT pr.vehicle_id)
+        FROM payment p
+        INNER JOIN parking_record pr ON p.parking_record_id = pr.id
+        WHERE p.created_at >= #{startDate}
+        AND p.created_at &lt;= #{endDate}
+        AND p.status = 1
+        <if test="parkingLotId != null">
+            AND pr.parking_lot_id = #{parkingLotId}
+        </if>
+    </select>
+</mapper>

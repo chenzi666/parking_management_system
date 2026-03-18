@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.admin.AdminAreaMapper">
+
+    <resultMap id="AreaResultMap" type="org.example.parking_management_system.entity.Area">
+        <id column="id" property="id"/>
+        <result column="parking_lot_id" property="parkingLotId"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="org.example.parking_management_system.entity.Area" useGeneratedKeys="true" keyProperty="addAreaDTO.id">
+        INSERT INTO area (parking_lot_id,name,description,created_at)
+        VALUES (#{parkingLotId},#{addAreaDTO.name},#{addAreaDTO.description},NOW())
+    </insert>
+    <select id="findByIdAll" parameterType="java.util.List" resultMap="AreaResultMap">
+        SELECT id, name
+        FROM area
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    <select id="findByParkingLotIdAll" parameterType="java.util.List" resultMap="AreaResultMap">
+        SELECT id,name,description FROM area WHERE parking_lot_id = #{parkingLotId}
+    </select>
+    <select id="findById" resultMap="AreaResultMap">
+        SELECT id,name,description FROM area WHERE id = #{id}
+    </select>
+    <update id="updateById" parameterType="org.example.parking_management_system.entity.Area">
+        UPDATE area
+        <set>
+            <if test="areaDTO.name != null and areaDTO.name != ''">
+              name = #{areaDTO.name},
+            </if>
+            <if test="areaDTO.description != null and areaDTO.description != ''">
+                description = #{areaDTO.description}
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM area WHERE id = #{id}
+    </delete>
+</mapper>

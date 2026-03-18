@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.admin.AdminVehicleMapper">
+<resultMap id="VehicleResultMap" type="org.example.parking_management_system.entity.Vehicle">
+    <id column="id" property="id"/>
+    <result column="plate_number" property="plateNumber"/>
+    <result column="user_id" property="userId"/>
+    <result column="vehicle_type" property="vehicleType"/>
+    <result column="color" property="color"/>
+    <result column="is_default" property="isDefault"/>
+    <result column="is_special" property="isSpecial"/>
+    <result column="created_at" property="createdAt"/>
+    <result column="updated_at" property="updatedAt"/>
+</resultMap>
+
+    <select id="vehicleAll" resultMap="VehicleResultMap">
+        SELECT * FROM vehicle
+        <where>
+            <if test="queryDTO.plateNumber != null and queryDTO.plateNumber != ''">
+                AND plate_number LIKE CONCAT('%', #{queryDTO.plateNumber}, '%')
+            </if>
+            <if test="queryDTO.phone != null and queryDTO.phone != ''">
+                AND user_id IN (
+                    SELECT id FROM user WHERE phone = #{queryDTO.phone}
+                )
+            </if>
+            <if test="queryDTO.status != null">
+                AND is_special = #{queryDTO.status}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{queryDTO.pageSize}
+    </select>
+    
+    <select id="countVehicles" resultType="int">
+        SELECT COUNT(*) FROM vehicle
+        <where>
+            <if test="queryDTO.plateNumber != null and queryDTO.plateNumber != ''">
+                AND plate_number LIKE CONCAT('%', #{queryDTO.plateNumber}, '%')
+            </if>
+            <if test="queryDTO.phone != null and queryDTO.phone != ''">
+                AND user_id IN (
+                    SELECT id FROM user WHERE phone = #{queryDTO.phone}
+                )
+            </if>
+            <if test="queryDTO.status != null">
+                AND is_special = #{queryDTO.status}
+            </if>
+        </where>
+    </select>
+    
+    <select id="findById" resultMap="VehicleResultMap">
+        SELECT * FROM vehicle WHERE id = #{id}
+    </select>
+    
+    <update id="updateById">
+        UPDATE vehicle
+        <set>
+            <if test="dto.plateNumber != null and dto.plateNumber != ''">
+                plate_number = #{dto.plateNumber},
+            </if>
+            <if test="dto.vehicleType != null and dto.vehicleType != ''">
+                vehicle_type = #{dto.vehicleType},
+            </if>
+            <if test="dto.color != null and dto.color != ''">
+                color = #{dto.color},
+            </if>
+            <if test="dto.isDefault != null">
+                is_default = #{dto.isDefault},
+            </if>
+            <if test="dto.isSpecial != null">
+                is_special = #{dto.isSpecial},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="delById" parameterType="long">
+        DELETE FROM vehicle WHERE id = #{id}
+    </delete>
+    
+    <insert id="batchImport" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO vehicle (plate_number, user_id, vehicle_type, color, is_special, is_default, created_at, updated_at)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.plateNumber}, #{item.userId}, #{item.vehicleType},
+             #{item.color}, #{item.isSpecial}, #{item.isDefault}, NOW(), NOW())
+        </foreach>
+    </insert>
+
+</mapper>

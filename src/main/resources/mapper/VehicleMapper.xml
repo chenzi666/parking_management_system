@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.VehicleMapper">
+    <resultMap id="VehicleResultMap" type="org.example.parking_management_system.entity.Vehicle">
+        <id column="id" property="id"/>
+        <result column="plate_number" property="plateNumber"/>
+        <result column="user_id" property="userId"/>
+        <result column="vehicle_type" property="vehicleType"/>
+        <result column="color" property="color"/>
+        <result column="is_default" property="isDefault"/>
+        <result column="is_special" property="isSpecial"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    <insert id="addVehicle" parameterType="org.example.parking_management_system.dto.request.VehicleAddDTO"
+            useGeneratedKeys="true" keyProperty="vehicleAddDTO.id">
+        INSERT INTO vehicle (plate_number,user_id,vehicle_type,color,is_default,is_special,created_at,updated_at)
+        VALUES (#{vehicleAddDTO.plateNumber},#{userId},#{vehicleAddDTO.vehicleType},#{vehicleAddDTO.color},#{vehicleAddDTO.isDefault},0,NOW(),NOW())
+    </insert>
+    <select id="findById" resultMap="VehicleResultMap">
+        SELECT id,plate_number,vehicle_type,color,is_default,created_at,user_id FROM vehicle
+        WHERE id = #{id}
+    </select>
+    <select id="findByPlateNumber" resultMap="VehicleResultMap">
+        SELECT plate_number FROM vehicle WHERE plate_number = #{plateNumber}
+    </select>
+    <select id="findByUserId" resultMap="VehicleResultMap">
+        SELECT id,plate_number,vehicle_type,color,is_default,created_at FROM vehicle WHERE user_id = #{userId}
+    </select>
+    <delete id="deleteVehicle" parameterType="long">
+        DELETE FROM vehicle WHERE id = #{id}
+    </delete>
+    <update id="updateVehicle" parameterType="org.example.parking_management_system.entity.Vehicle">
+        UPDATE vehicle 
+        <set>
+            <if test="updateVehicleDTO.vehicleType != null and updateVehicleDTO.vehicleType != ''">
+                vehicle_type = #{updateVehicleDTO.vehicleType},
+            </if>
+            <if test="updateVehicleDTO.color != null and updateVehicleDTO.color != ''">
+                color = #{updateVehicleDTO.color},
+            </if>
+            <if test="updateVehicleDTO.isDefault != null">
+                is_default = #{updateVehicleDTO.isDefault},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+</mapper>

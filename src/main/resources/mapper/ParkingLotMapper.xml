@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.parking_management_system.mapper.ParkingLotMapper">
+
+    <resultMap id="ParkingLotResultMap" type="org.example.parking_management_system.entity.ParkingLot">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="address" property="address"/>
+        <result column="total_spaces" property="totalSpaces"/>
+        <result column="available_spaces" property="availableSpaces"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="latitude" property="latitude"/>
+        <result column="longitude" property="longitude"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    <select id="findAll" resultMap="ParkingLotResultMap">
+        SELECT id,name,address,total_spaces,available_spaces,longitude,latitude,contact_phone,status
+        FROM parking_lot ORDER BY id LIMIT #{page},#{pageSize}
+    </select>
+    <select id="count" resultType="Long">
+        SELECT COUNT(*) FROM parking_lot ORDER BY id LIMIT #{page},#{pageSize}
+    </select>
+    <select id="findById" resultMap="ParkingLotResultMap">
+        SELECT id,name,address,total_spaces,available_spaces,longitude,latitude,contact_phone,status,description
+        FROM parking_lot WHERE id = #{id}
+    </select>
+    <select id="parkingStatusById" resultMap="ParkingLotResultMap">
+        SELECT total_spaces,available_spaces FROM parking_lot WHERE id = #{id}
+    </select>
+</mapper>
