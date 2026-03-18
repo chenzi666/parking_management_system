@@ -344,7 +344,7 @@ parking_management_system/
 本项目由个人开发者开发，欢迎交流和合作。
 
 ### 联系方式
-- 📧 Email: your-email@example.com
+- 📧 Email: 2897895906@qq.com
 - 💬 Issues: [GitHub Issues](https://github.com/your-username/parking_management_system/issues)
 
 ## 🎯 路线图
